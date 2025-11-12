@@ -12,6 +12,10 @@ export function calculateDiscounts(total, items, discounts, discountTypes) {
     });
 
   orderedDiscounts.forEach((discount) => {
+    if (currentPrice <= 0) {
+      return;
+    }
+
     const beforePrice = currentPrice;
     let discountAmount = 0;
     let details = {};

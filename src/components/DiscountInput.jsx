@@ -17,6 +17,23 @@ export default function DiscountInput({
   return (
     <div className={`border rounded-lg p-4 min-h-[100] w-60 ${disabled ? 'bg-gray-100' : 'bg-white'}`}>
       <h3 className="text-lg font-semibold mb-3">{category} Discount</h3>
+
+      {disabled && discount.type === "none" && category !== "Coupon" && (
+        (() => {
+          // ตรวจสอบว่า disabled เพราะราคาเหลือ 0 หรือเพราะยังไม่ได้เลือก coupon ก่อนหน้า
+          // ถ้า category เป็น "On Top" ให้เช็คว่ามี Coupon ถูกเลือกหรือไม่
+          // ถ้า category เป็น "Seasonal" ให้เช็คว่ามี Coupon และ On Top ถูกเลือกหรือไม่
+          const shouldShowWarning = category === "On Top" 
+            ? disabled && discount.type === "none" // จะแสดงถ้า disabled แต่ต้องมี logic เช็คเพิ่ม
+            : category === "Seasonal" 
+              ? disabled && discount.type === "none"
+              : false;
+          
+          // อันนี้จะแสดงเฉพาะเมื่อราคาเหลือ 0 จริงๆ เท่านั้น
+          // ไม่ใช่ disabled เพราะยังไม่ได้เลือก coupon
+          return null; // ปิดการแสดงผลไปก่อน เดี๋ยวเราจะใช้วิธีอื่น
+        })()
+      )}
       
       <Select 
         value={discount.type || "none"} 

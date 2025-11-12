@@ -18,7 +18,9 @@ export default function App() {
     isCouponSelected,
     isOnTopSelected,
     discounts,
-    errors
+    errors,
+    isPriceZeroAfterCoupon,
+    isPriceZeroAfterOnTop
   } = useDiscountCalculator(items, discountTypes);
 
   return (
@@ -58,7 +60,7 @@ export default function App() {
             discountTypes={discountTypes}
             onTypeChange={(v) => handleTypeChange(1, v)}
             onParamChange={(k, v) => handleParamChange(1, k, v)}
-            disabled={!isCouponSelected}
+            disabled={!isCouponSelected || isPriceZeroAfterCoupon}
             items={items}
             errors={errors.discount_1 || {}}
           />
@@ -70,7 +72,7 @@ export default function App() {
             discountTypes={discountTypes}
             onTypeChange={(v) => handleTypeChange(2, v)}
             onParamChange={(k, v) => handleParamChange(2, k, v)}
-            disabled={!isCouponSelected || !isOnTopSelected}
+            disabled={!isCouponSelected || !isOnTopSelected || isPriceZeroAfterOnTop}
             items={items}
             errors={errors.discount_2 || {}}
           />

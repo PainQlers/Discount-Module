@@ -124,7 +124,7 @@ export function useDiscountCalculator(items, discountTypes) {
     };
   
     const handleApply = () => {
-      const validationErrors = validateDiscounts(); // ✅ เปลี่ยนชื่อตัวแปรชั่วคราว
+      const validationErrors = validateDiscounts();
       setErrors(validationErrors); // ✅ set object
       
       const hasErrors = Object.keys(validationErrors).some(
@@ -149,9 +149,67 @@ export function useDiscountCalculator(items, discountTypes) {
       setErrors({});
     };
 
+    const checkPriceAfterDiscount = (discountIndex) => {
+      let tempPrice = total;
+      
+      // คำนวณส่วนลดทีละขั้นจนถึงก่อน discountIndex
+      for (let i = 0; i < discountIndex; i++) {
+        const discount = discounts[i];
+        if (!discount.type || discount.type === "none") continue;
+        
+        switch (discount.type) {
+          case "fixed": {
+            const fixedAmount = parseFloat(discount.params.amount) || 0;
+            tempPrice = Math.max(0, tempPrice - fixedAmount);
+            break;
+          }
+          case "percentage": {
+            const percentage = parseFloat(discount.params.percentage) || 0;
+            tempPrice = tempPrice * (1 - percentage / 100);
+            break;
+          }
+          case "category": {
+            const targetCategory = discount.params.category;
+            const categoryPercent = parseFloat(discount.params.percent) || 0;
+            const categoryItems = items.filter(item => item.category === targetCategory);
+            const categoryTotal = categoryItems.reduce((sum, item) => sum + item.price, 0);
+            const discountAmount = categoryTotal * categoryPercent / 100;
+            tempPrice = Math.max(0, tempPrice - discountAmount);
+            break;
+          }
+          case "points": {
+            const points = parseFloat(discount.params.points) || 0;
+            const maxPointsDiscount = total * 0.2;
+            const discountAmount = Math.min(points, maxPointsDiscount);
+            tempPrice = Math.max(0, tempPrice - discountAmount);
+            break;
+          }
+          case "specialCampaign": {
+            const every = parseFloat(discount.params.every) || 300;
+            const discountPerTier = parseFloat(discount.params.discount) || 40;
+            const times = Math.floor(total / every);
+            const discountAmount = times * discountPerTier;
+            tempPrice = Math.max(0, tempPrice - discountAmount);
+            break;
+          }
+        }
+        
+        // ถ้าราคาเหลือ 0 แล้ว return true ทันที
+        if (tempPrice <= 0) {
+          return true;
+        }
+      }
+      
+      // return ว่าราคาเหลือ 0 หรือไม่
+      return tempPrice <= 0;
+    };
+
     // Check if Coupon discount is selected
     const isCouponSelected = discounts[0].type !== "none" && discounts[0].type !== "";
     const isOnTopSelected = discounts[1].type !== "none" && discounts[1].type !== "";
+
+    const isPriceZeroAfterCoupon = checkPriceAfterDiscount(1);
+    const isPriceZeroAfterOnTop = checkPriceAfterDiscount(2);
 
   return {
     total,
@@ -163,6 +221,8 @@ export function useDiscountCalculator(items, discountTypes) {
     isCouponSelected,
     isOnTopSelected,
     discounts,
-    errors
+    errors,
+    isPriceZeroAfterCoupon,
+    isPriceZeroAfterOnTop
   };
 }
